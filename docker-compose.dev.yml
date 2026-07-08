@@ -1,0 +1,50 @@
+services:
+  api-gateway:
+    volumes:
+      - ./services/api-gateway/src:/app/src
+      - ./services/api-gateway/dist:/app/dist
+    command: sh -c "npx tsc --watch & node dist/server.js"
+    environment:
+      NODE_ENV: development
+
+  auth-service:
+    volumes:
+      - ./services/auth-service/src:/app/src
+      - ./services/auth-service/dist:/app/dist
+    command: sh -c "npx tsc --watch & node dist/server.js"
+    environment:
+      NODE_ENV: development
+
+  resume-service:
+    volumes:
+      - ./services/resume-service/src:/app/src
+      - ./services/resume-service/dist:/app/dist
+    command: sh -c "npx tsc --watch & node dist/server.js"
+    environment:
+      NODE_ENV: development
+
+  interview-service:
+    volumes:
+      - ./services/interview-service/src:/app/src
+      - ./services/interview-service/dist:/app/dist
+    command: sh -c "npx tsc --watch & node dist/server.js"
+    environment:
+      NODE_ENV: development
+
+  coding-service:
+    volumes:
+      - ./services/coding-service/src:/app/src
+      - ./services/coding-service/dist:/app/dist
+    command: sh -c "npx tsc --watch & node dist/server.js"
+    environment:
+      NODE_ENV: development
+
+  genai-service:
+    volumes:
+      - ./services/genai-service/app:/app/app
+    command: sh -c "python -m uvicorn app.main:app --host 0.0.0.0 --port $${PORT} --reload"
+
+  ml-service:
+    volumes:
+      - ./services/ml-service/app:/app/app
+    command: sh -c "python -m uvicorn app.main:app --host 0.0.0.0 --port $${PORT} --reload"

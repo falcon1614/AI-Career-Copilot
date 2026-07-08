@@ -1,0 +1,191 @@
+# docker-compose.yml
+
+networks:
+  copilot-net:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:
+
+services:
+
+  # ─── Infrastructure ────────────────────────────────────────────────
+
+  postgres:
+    image: pgvector/pgvector:pg16      # postgres 16 with pgvector pre-installed
+    container_name: copilot-postgres
+    restart: unless-stopped
+    networks: [copilot-net]
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"                    # exposed so you can use DBeaver/pgAdmin locally
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: copilot-redis
+    restart: unless-stopped
+    networks: [copilot-net]
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # ─── Node Services ─────────────────────────────────────────────────
+
+  api-gateway:
+    build:
+      context: ./services/api-gateway
+      dockerfile: Dockerfile
+    container_name: copilot-api-gateway
+    restart: unless-stopped
+    networks: [copilot-net]
+    env_file: .env
+    environment:
+      PORT: 3000
+      AUTH_SERVICE_URL: http://auth-service:3001
+      RESUME_SERVICE_URL: http://resume-service:3002
+      INTERVIEW_SERVICE_URL: http://interview-service:3003
+      CODING_SERVICE_URL: http://coding-service:3004
+      GENAI_SERVICE_URL: http://genai-service:8001
+      ML_SERVICE_URL: http://ml-service:8002
+    ports:
+      - "3000:3000"
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  auth-service:
+    build:
+      context: ./services/auth-service
+      dockerfile: Dockerfile
+    container_name: copilot-auth-service
+    restart: unless-stopped
+    networks: [copilot-net]
+    env_file: .env
+    environment:
+      PORT: 3001
+    ports:
+      - "3001:3001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  resume-service:
+    build:
+      context: ./services/resume-service
+      dockerfile: Dockerfile
+    container_name: copilot-resume-service
+    restart: unless-stopped
+    networks: [copilot-net]
+    env_file: .env
+    environment:
+      PORT: 3002
+    ports:
+      - "3002:3002"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  interview-service:
+    build:
+      context: ./services/interview-service
+      dockerfile: Dockerfile
+    container_name: copilot-interview-service
+    restart: unless-stopped
+    networks: [copilot-net]
+    env_file: .env
+    environment:
+      PORT: 3003
+    ports:
+      - "3003:3003"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  coding-service:
+    build:
+      context: ./services/coding-service
+      dockerfile: Dockerfile
+    container_name: copilot-coding-service
+    restart: unless-stopped
+    networks: [copilot-net]
+    env_file: .env
+    environment:
+      PORT: 3004
+    ports:
+      - "3004:3004"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # ─── Python Services ───────────────────────────────────────────────
+
+  genai-service:
+    build:
+      context: ./services/genai-service
+      dockerfile: Dockerfile
+    container_name: copilot-genai-service
+    restart: unless-stopped
+    networks: [copilot-net]
+    env_file: .env
+    environment:
+      PORT: 8001
+    ports:
+      - "8001:8001"
+
+  ml-service:
+    build:
+      context: ./services/ml-service
+      dockerfile: Dockerfile
+    container_name: copilot-ml-service
+    restart: unless-stopped
+    networks: [copilot-net]
+    env_file: .env
+    environment:
+      PORT: 8002
+    ports:
+      - "8002:8002"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: copilot-pgadmin
+    restart: unless-stopped
+    networks: [copilot-net]
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@copilot.dev
+      PGADMIN_DEFAULT_PASSWORD: admin123
+    ports:
+      - "5050:80"
+
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: copilot-redis-ui
+    restart: unless-stopped
+    networks: [copilot-net]
+    environment:
+      REDIS_HOSTS: local:redis:6379
+    ports:
+      - "8081:8081"
