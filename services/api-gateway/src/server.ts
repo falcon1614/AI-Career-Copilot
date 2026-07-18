@@ -1,38 +1,64 @@
-// services/api-gateway/src/server.ts
-import express, { Request, Response } from 'express';
+import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import 'dotenv/config';
+import { createProxyMiddleware, Options } from 'http-proxy-middleware';
+import { requireAuth } from './middlewares/auth.middleware';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(helmet());
+const AUTH_URL      = process.env.AUTH_SERVICE_URL      || 'http://auth-service:3001';
+const RESUME_URL    = process.env.RESUME_SERVICE_URL    || 'http://resume-service:3002';
+const INTERVIEW_URL = process.env.INTERVIEW_SERVICE_URL || 'http://interview-service:3003';
+const CODING_URL    = process.env.CODING_SERVICE_URL    || 'http://coding-service:3004';
+const GENAI_URL     = process.env.GENAI_SERVICE_URL     || 'http://genai-service:8001';
+const ML_URL        = process.env.ML_SERVICE_URL        || 'http://ml-service:8002';
+
+app.use(helmet({ contentSecurityPolicy: false }));
 app.use(cors());
-app.use(express.json());
 
-// Health check — this is what docker-compose healthchecks (if any)
-// and your future k8s liveness probes will hit
 app.get('/health', (_req: Request, res: Response) => {
-  res.json({
-    status: 'ok',
-    service: 'api-gateway',
-    timestamp: new Date().toISOString(),
-  });
+  res.json({ status: 'ok', service: 'api-gateway', timestamp: new Date().toISOString() });
 });
 
-// Phase 0 placeholder — will be replaced with real proxy routes in Phase 1
-app.get('/', (_req: Request, res: Response) => {
-  res.json({ message: 'AI Career Copilot — API Gateway' });
-});
+function makeProxy(target: string, pathRewrite?: Record<string, string>): ReturnType<typeof createProxyMiddleware> {
+  const opts: Options = {
+    target,
+    changeOrigin: true,
+    logLevel: 'warn',
+    ...(pathRewrite && { pathRewrite }),
+  };
+  return createProxyMiddleware(opts);
+}
 
-// Catch-all for Phase 0
+// Auth — public
+app.use('/api/auth', makeProxy(AUTH_URL));
+
+// Resume — protected
+app.use('/api/resumes', requireAuth as any, makeProxy(RESUME_URL));
+
+// Interview — protected
+app.use('/api/interviews', requireAuth as any, makeProxy(INTERVIEW_URL));
+
+// Coding — protected
+app.use('/api/coding', requireAuth as any, makeProxy(CODING_URL));
+
+// GenAI — protected, strip /api/genai prefix → becomes /api/...
+app.use('/api/genai', requireAuth as any, makeProxy(GENAI_URL, {
+  '^/api/genai': '/api',
+}));
+
+// ML — protected
+app.use('/api/ml', requireAuth as any, makeProxy(ML_URL, {
+  '^/api/ml': '/api',
+}));
+
+app.use(express.json());
 app.use((_req: Request, res: Response) => {
-  res.status(404).json({ error: 'Route not implemented yet' });
+  res.status(404).json({ success: false, error: 'Route not found' });
 });
 
 app.listen(PORT, () => {
   console.log(`[api-gateway] Running on port ${PORT}`);
 });
-
-export default app;
