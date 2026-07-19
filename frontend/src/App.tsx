@@ -9,6 +9,7 @@ import DashboardPage    from './pages/DashboardPage';
 import ResumePage       from './pages/ResumePage';
 import ResumeDetailPage from './pages/ResumeDetailPage';
 import InterviewPage    from './pages/InterviewPage';
+import CodingPage from './pages/CodingPage';
 import RoadmapPage      from './pages/RoadmapPage';
 import ProtectedRoute   from './components/layout/ProtectedRoute';
 
@@ -27,6 +28,7 @@ function AppRoutes() {
       <Route path="/resume"    element={<ProtectedRoute><ResumePage /></ProtectedRoute>} />
       <Route path="/resume/:id" element={<ProtectedRoute><ResumeDetailPage /></ProtectedRoute>} />
       <Route path="/interview" element={<ProtectedRoute><InterviewPage /></ProtectedRoute>} />
+      <Route path="/coding" element={<ProtectedRoute><CodingPage /></ProtectedRoute>} />
       <Route path="/roadmap"   element={<ProtectedRoute><RoadmapPage /></ProtectedRoute>} />
       <Route path="/" element={<Navigate to={isAuthenticated ? "/dashboard" : "/login"} replace />} />
     </Routes>

@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { useResumeStore } from '../store/resumeStore';
-import { FileText, Mic, Map, LogOut, Upload, TrendingUp } from 'lucide-react';
+import { FileText, Mic, Map, LogOut, Upload, TrendingUp, Code } from 'lucide-react';
 
 export default function DashboardPage() {
   const { user, logout } = useAuthStore();
@@ -59,6 +59,7 @@ export default function DashboardPage() {
             <h3 className="font-semibold text-lg">Mock Interview</h3>
             <p className="text-purple-100 text-sm mt-1">AI-generated interview questions</p>
           </Link>
+          <Link to="/coding" className="bg-orange-600 text-white rounded-xl p-6 hover:bg-orange-700 transition-colors"><Code size={28} className="mb-3" /><h3 className="font-semibold text-lg">Coding Practice</h3><p className="text-orange-100 text-sm mt-1">6 problems with live judge</p></Link>
           <Link to="/roadmap" className="bg-green-600 text-white rounded-xl p-6 hover:bg-green-700 transition-colors">
             <Map size={28} className="mb-3" />
             <h3 className="font-semibold text-lg">Learning Roadmap</h3>
