@@ -10,7 +10,7 @@ interface Question {
   user_answer: string | null; ai_feedback: string | null; score: number | null;
 }
 
-interface Session {
+interface Session { question_type: string;
   id: string; job_role: string; status: string; score: number | null;
   total_questions: number; answered_questions: number; created_at: string;
 }

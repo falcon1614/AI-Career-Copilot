@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Play, CheckCircle, XCircle, Clock, ChevronDown, ChevronUp } from 'lucide-react';
+import { ArrowLeft, Play, CheckCircle, XCircle, Clock } from 'lucide-react';
 import api from '../api/client';
 import toast from 'react-hot-toast';
 

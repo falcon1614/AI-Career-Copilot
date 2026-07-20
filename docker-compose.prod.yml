@@ -1,0 +1,166 @@
+# Production docker-compose — use with: docker compose -f docker-compose.prod.yml up -d
+
+networks:
+  copilot-net:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:
+
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: copilot-postgres
+    restart: always
+    networks: [copilot-net]
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: copilot-redis
+    restart: always
+    networks: [copilot-net]
+    volumes:
+      - redis_data:/data
+    command: redis-server --requirepass ${REDIS_PASSWORD:-redispass}
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  api-gateway:
+    build:
+      context: ./services/api-gateway
+      dockerfile: Dockerfile
+    container_name: copilot-api-gateway
+    restart: always
+    networks: [copilot-net]
+    env_file: .env
+    environment:
+      PORT: 3000
+      NODE_ENV: production
+      AUTH_SERVICE_URL: http://auth-service:3001
+      RESUME_SERVICE_URL: http://resume-service:3002
+      INTERVIEW_SERVICE_URL: http://interview-service:3003
+      CODING_SERVICE_URL: http://coding-service:3004
+      GENAI_SERVICE_URL: http://genai-service:8001
+      ML_SERVICE_URL: http://ml-service:8002
+    ports:
+      - "3000:3000"
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  auth-service:
+    build:
+      context: ./services/auth-service
+      dockerfile: Dockerfile
+    container_name: copilot-auth-service
+    restart: always
+    networks: [copilot-net]
+    env_file: .env
+    environment:
+      PORT: 3001
+      NODE_ENV: production
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  resume-service:
+    build:
+      context: ./services/resume-service
+      dockerfile: Dockerfile
+    container_name: copilot-resume-service
+    restart: always
+    networks: [copilot-net]
+    env_file: .env
+    environment:
+      PORT: 3002
+      NODE_ENV: production
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  interview-service:
+    build:
+      context: ./services/interview-service
+      dockerfile: Dockerfile
+    container_name: copilot-interview-service
+    restart: always
+    networks: [copilot-net]
+    env_file: .env
+    environment:
+      PORT: 3003
+      NODE_ENV: production
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  coding-service:
+    build:
+      context: ./services/coding-service
+      dockerfile: Dockerfile
+    container_name: copilot-coding-service
+    restart: always
+    networks: [copilot-net]
+    env_file: .env
+    environment:
+      PORT: 3004
+      NODE_ENV: production
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  genai-service:
+    build:
+      context: ./services/genai-service
+      dockerfile: Dockerfile
+    container_name: copilot-genai-service
+    restart: always
+    networks: [copilot-net]
+    env_file: .env
+    environment:
+      PORT: 8001
+
+  ml-service:
+    build:
+      context: ./services/ml-service
+      dockerfile: Dockerfile
+    container_name: copilot-ml-service
+    restart: always
+    networks: [copilot-net]
+    env_file: .env
+    environment:
+      PORT: 8002
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  nginx:
+    image: nginx:alpine
+    container_name: copilot-nginx
+    restart: always
+    networks: [copilot-net]
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+      - ./frontend/dist:/usr/share/nginx/html:ro
+    depends_on:
+      - api-gateway

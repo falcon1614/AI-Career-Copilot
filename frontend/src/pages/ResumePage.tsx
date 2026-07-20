@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useResumeStore } from '../store/resumeStore';
-import { Upload, FileText, Trash2, TrendingUp, ArrowLeft } from 'lucide-react';
+import { Upload, FileText, Trash2, ArrowLeft } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export default function ResumePage() {

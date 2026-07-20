@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useResumeStore } from '../store/resumeStore';
-import { ArrowLeft, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
+import { ArrowLeft, AlertCircle } from 'lucide-react';
 
 function ScoreBar({ label, score, max }: { label: string; score: number; max: number }) {
   const pct = Math.round((score / max) * 100);
