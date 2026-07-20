@@ -1,42 +1,13 @@
-# Environment
 .env
-*.env.local
-*.env.production
-
-# Node
 node_modules/
 dist/
-*.log
-npm-debug.log*
-
-# Python
 __pycache__/
 *.py[cod]
-*.pyo
 .venv/
 .venv_packages/
-*.egg-info/
-
-# Frontend build
 frontend/dist/
 frontend/node_modules/
-
-# Docker
-.docker/
-
-# OS
-.DS_Store
-Thumbs.db
-
-# IDE
-.vscode/
-.idea/
-*.swp
-
-# Uploads (user data)
 services/resume-service/uploads/
-*.pdf
-*.docx
-
-# Build artifacts
 services/*/dist/
+*.log
+.DS_Store
