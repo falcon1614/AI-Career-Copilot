@@ -1,8 +1,18 @@
-# services/ml-service/app/main.py
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from datetime import datetime
+from app.api.v1.ml_routes import router as ml_router
 
-app = FastAPI(title="ML Service", version="0.1.0")
+app = FastAPI(title="ML Service", version="1.0.0")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+app.include_router(ml_router, prefix="/api")
 
 
 @app.get("/health")
@@ -12,8 +22,3 @@ async def health():
         "service": "ml-service",
         "timestamp": datetime.utcnow().isoformat(),
     }
-
-
-@app.get("/")
-async def root():
-    return {"message": "AI Career Copilot — ML Service"}

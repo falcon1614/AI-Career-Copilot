@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { useResumeStore } from '../store/resumeStore';
-import { FileText, Mic, Map, LogOut, Upload, TrendingUp, Code } from 'lucide-react';
+import { FileText, Mic, Code, Brain, LogOut, Upload, TrendingUp, Map } from 'lucide-react';
 
 export default function DashboardPage() {
   const { user, logout } = useAuthStore();
@@ -19,10 +19,8 @@ export default function DashboardPage() {
         <h1 className="text-xl font-bold text-blue-600">AI Career Copilot</h1>
         <div className="flex items-center gap-4">
           <span className="text-gray-600 text-sm">Hi, {user?.fullName?.split(' ')[0] || 'User'}</span>
-          <button
-            onClick={logout}
-            className="flex items-center gap-1 text-gray-500 hover:text-red-500 text-sm transition-colors"
-          >
+          <button onClick={logout}
+            className="flex items-center gap-1 text-gray-500 hover:text-red-500 text-sm transition-colors">
             <LogOut size={16} /> Logout
           </button>
         </div>
@@ -47,8 +45,8 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Feature Cards */}
-        <div className="grid grid-cols-3 gap-4 mb-8">
+        {/* Feature Cards — 2x2 grid */}
+        <div className="grid grid-cols-2 gap-4 mb-8">
           <Link to="/resume" className="bg-blue-600 text-white rounded-xl p-6 hover:bg-blue-700 transition-colors">
             <FileText size={28} className="mb-3" />
             <h3 className="font-semibold text-lg">Resume Analyzer</h3>
@@ -59,12 +57,34 @@ export default function DashboardPage() {
             <h3 className="font-semibold text-lg">Mock Interview</h3>
             <p className="text-purple-100 text-sm mt-1">AI-generated interview questions</p>
           </Link>
-          <Link to="/coding" className="bg-orange-600 text-white rounded-xl p-6 hover:bg-orange-700 transition-colors"><Code size={28} className="mb-3" /><h3 className="font-semibold text-lg">Coding Practice</h3><p className="text-orange-100 text-sm mt-1">6 problems with live judge</p></Link>
-          <Link to="/roadmap" className="bg-green-600 text-white rounded-xl p-6 hover:bg-green-700 transition-colors">
-            <Map size={28} className="mb-3" />
-            <h3 className="font-semibold text-lg">Learning Roadmap</h3>
-            <p className="text-green-100 text-sm mt-1">Personalized study plan</p>
+          <Link to="/coding" className="bg-orange-600 text-white rounded-xl p-6 hover:bg-orange-700 transition-colors">
+            <Code size={28} className="mb-3" />
+            <h3 className="font-semibold text-lg">Coding Practice</h3>
+            <p className="text-orange-100 text-sm mt-1">6 problems — Python, JS, C++ judge</p>
           </Link>
+          <Link to="/ml" className="bg-indigo-600 text-white rounded-xl p-6 hover:bg-indigo-700 transition-colors">
+            <Brain size={28} className="mb-3" />
+            <h3 className="font-semibold text-lg">ML Insights</h3>
+            <p className="text-indigo-100 text-sm mt-1">Job match, salary predict, company fit</p>
+          </Link>
+        </div>
+
+        {/* Secondary row */}
+        <div className="grid grid-cols-2 gap-4 mb-8">
+          <Link to="/roadmap" className="bg-green-600 text-white rounded-xl p-5 hover:bg-green-700 transition-colors flex items-center gap-4">
+            <Map size={24} />
+            <div>
+              <h3 className="font-semibold">Learning Roadmap</h3>
+              <p className="text-green-100 text-sm">Personalized study plan</p>
+            </div>
+          </Link>
+          <div className="bg-white rounded-xl p-5 border border-gray-100 flex items-center gap-4">
+            <TrendingUp size={24} className="text-gray-400" />
+            <div>
+              <h3 className="font-semibold text-gray-900">Market Insights</h3>
+              <p className="text-gray-500 text-sm">Go to ML Insights → Market tab</p>
+            </div>
+          </div>
         </div>
 
         {/* Recent Resumes */}

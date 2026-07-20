@@ -1,4 +1,4 @@
-import express, { Request, Response, NextFunction } from 'express';
+import express, { Request, Response } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import 'dotenv/config';
@@ -44,15 +44,13 @@ app.use('/api/interviews', requireAuth as any, makeProxy(INTERVIEW_URL));
 // Coding — protected
 app.use('/api/coding', requireAuth as any, makeProxy(CODING_URL));
 
-// GenAI — protected, strip /api/genai prefix → becomes /api/...
+// GenAI — protected, strip /api/genai → /api
 app.use('/api/genai', requireAuth as any, makeProxy(GENAI_URL, {
   '^/api/genai': '/api',
 }));
 
-// ML — protected
-app.use('/api/ml', requireAuth as any, makeProxy(ML_URL, {
-  '^/api/ml': '/api',
-}));
+// ML — protected, forward as-is (service has /api/ml routes)
+app.use('/api/ml', requireAuth as any, makeProxy(ML_URL));
 
 app.use(express.json());
 app.use((_req: Request, res: Response) => {

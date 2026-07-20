@@ -1,43 +1,42 @@
-# .gitignore
+# Environment
+.env
+*.env.local
+*.env.production
+
+# Node
 node_modules/
 dist/
-build/
 *.log
+npm-debug.log*
 
 # Python
 __pycache__/
-*.pyc
-venv/
+*.py[cod]
+*.pyo
 .venv/
+.venv_packages/
+*.egg-info/
 
-# Env
-.env
-.env.local
-*.env
+# Frontend build
+frontend/dist/
+frontend/node_modules/
+
+# Docker
+.docker/
 
 # OS
 .DS_Store
-
-# Docker
-*.pid
-
-# ML artifacts (large files, don't commit)
-services/ml-service/app/artifacts/*.pkl
-services/ml-service/app/artifacts/*.joblib
+Thumbs.db
 
 # IDE
 .vscode/
 .idea/
+*.swp
 
+# Uploads (user data)
+services/resume-service/uploads/
+*.pdf
+*.docx
 
-# root .gitignore
-.env
-node_modules/
-dist/
-__pycache__/
-*.pyc
-.DS_Store
-*.egg-info/
-.venv/
-services/ml-service/app/artifacts/*.pkl
-services/ml-service/app/artifacts/*.joblib
+# Build artifacts
+services/*/dist/
