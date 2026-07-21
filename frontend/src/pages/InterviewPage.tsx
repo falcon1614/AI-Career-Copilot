@@ -10,23 +10,28 @@ interface Question {
   user_answer: string | null; ai_feedback: string | null; score: number | null;
 }
 
-interface Session { question_type: string;
-  id: string; job_role: string; status: string; score: number | null;
-  total_questions: number; answered_questions: number; created_at: string;
+interface Session {
+  id: string;
+  job_role: string;
+  question_type: string;
+  status: string;
+  score: number | null;
+  total_questions: number;
+  answered_questions: number;
+  created_at: string;
 }
 
 export default function InterviewPage() {
-  const [view, setView]           = useState<'list'|'create'|'session'>('list');
-  const [sessions, setSessions]   = useState<Session[]>([]);
-  const [current, setCurrent]     = useState<any>(null);
-  const [answers, setAnswers]     = useState<Record<string, string>>({});
-  const [openIdx, setOpenIdx]     = useState<number>(0);
-  const [loading, setLoading]     = useState(false);
+  const [view, setView]             = useState<'list'|'create'|'session'>('list');
+  const [sessions, setSessions]     = useState<Session[]>([]);
+  const [current, setCurrent]       = useState<any>(null);
+  const [answers, setAnswers]       = useState<Record<string, string>>({});
+  const [openIdx, setOpenIdx]       = useState<number>(0);
+  const [loading, setLoading]       = useState(false);
   const [submitting, setSubmitting] = useState<string | null>(null);
-
-  const [jobRole, setJobRole]     = useState('');
-  const [qType, setQType]         = useState('mixed');
-  const [count, setCount]         = useState(5);
+  const [jobRole, setJobRole]       = useState('');
+  const [qType, setQType]           = useState('mixed');
+  const [count, setCount]           = useState(5);
   const [resumeText, setResumeText] = useState('');
 
   useEffect(() => { fetchSessions(); }, []);
@@ -62,7 +67,6 @@ export default function InterviewPage() {
       const { data } = await api.post(`/api/interviews/${current.session.id}/answer`, {
         questionId, answer,
       });
-      // Update question in local state
       setCurrent((prev: any) => ({
         ...prev,
         questions: prev.questions.map((q: Question) =>
@@ -73,7 +77,6 @@ export default function InterviewPage() {
         session: { ...prev.session, answered_questions: prev.session.answered_questions + 1 },
       }));
       toast.success(`Score: ${data.data.score}/100`);
-      // Auto-advance to next question
       const idx = current.questions.findIndex((q: Question) => q.id === questionId);
       if (idx < current.questions.length - 1) setOpenIdx(idx + 1);
     } catch { toast.error('Failed to submit answer'); }
@@ -97,7 +100,6 @@ export default function InterviewPage() {
     t === 'technical' ? 'bg-blue-100 text-blue-700' :
     t === 'behavioral' ? 'bg-purple-100 text-purple-700' : 'bg-green-100 text-green-700';
 
-  // LIST VIEW
   if (view === 'list') return (
     <div className="min-h-screen bg-gray-50">
       <nav className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
@@ -145,7 +147,6 @@ export default function InterviewPage() {
     </div>
   );
 
-  // CREATE VIEW
   if (view === 'create') return (
     <div className="min-h-screen bg-gray-50">
       <nav className="bg-white border-b border-gray-200 px-6 py-4 flex items-center gap-4">
@@ -180,10 +181,10 @@ export default function InterviewPage() {
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Resume Text (optional — improves question relevance)</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Resume Text (optional)</label>
             <textarea value={resumeText} onChange={e => setResumeText(e.target.value)} rows={4}
               className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none"
-              placeholder="Paste your resume text here for personalized questions..." />
+              placeholder="Paste your resume text for personalized questions..." />
           </div>
           <button onClick={createSession} disabled={loading}
             className="w-full bg-purple-600 text-white py-3 rounded-lg font-semibold hover:bg-purple-700 disabled:opacity-50 flex items-center justify-center gap-2">
@@ -194,7 +195,6 @@ export default function InterviewPage() {
     </div>
   );
 
-  // SESSION VIEW
   if (!current) return null;
   const { session, questions } = current;
   const progress = Math.round((session.answered_questions / session.total_questions) * 100);
@@ -255,7 +255,6 @@ export default function InterviewPage() {
                     <span className="font-medium text-blue-700">Hint:</span> {q.hint}
                   </p>
                 )}
-
                 {q.user_answer ? (
                   <div className="space-y-3">
                     <div className="bg-gray-50 rounded-lg p-3">

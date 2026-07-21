@@ -1,0 +1,132 @@
+# Run entire AI Career Copilot from Docker Hub — no code needed
+# Usage: docker compose -f docker-compose.pull.yml up -d
+
+networks:
+  copilot-net:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:
+
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: copilot-postgres
+    restart: unless-stopped
+    networks: [copilot-net]
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-copilot}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-copilot123}
+      POSTGRES_DB: ${POSTGRES_DB:-copilot_db}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-copilot}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: copilot-redis
+    restart: unless-stopped
+    networks: [copilot-net]
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  api-gateway:
+    image: falcon1614/ai-career-copilot-api-gateway:latest
+    container_name: copilot-api-gateway
+    restart: unless-stopped
+    networks: [copilot-net]
+    env_file: .env
+    environment:
+      PORT: 3000
+      AUTH_SERVICE_URL: http://auth-service:3001
+      RESUME_SERVICE_URL: http://resume-service:3002
+      INTERVIEW_SERVICE_URL: http://interview-service:3003
+      CODING_SERVICE_URL: http://coding-service:3004
+      GENAI_SERVICE_URL: http://genai-service:8001
+      ML_SERVICE_URL: http://ml-service:8002
+    ports:
+      - "3000:3000"
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  auth-service:
+    image: falcon1614/ai-career-copilot-auth-service:latest
+    container_name: copilot-auth-service
+    restart: unless-stopped
+    networks: [copilot-net]
+    env_file: .env
+    environment:
+      PORT: 3001
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  resume-service:
+    image: falcon1614/ai-career-copilot-resume-service:latest
+    container_name: copilot-resume-service
+    restart: unless-stopped
+    networks: [copilot-net]
+    env_file: .env
+    environment:
+      PORT: 3002
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  interview-service:
+    image: falcon1614/ai-career-copilot-interview-service:latest
+    container_name: copilot-interview-service
+    restart: unless-stopped
+    networks: [copilot-net]
+    env_file: .env
+    environment:
+      PORT: 3003
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  coding-service:
+    image: falcon1614/ai-career-copilot-coding-service:latest
+    container_name: copilot-coding-service
+    restart: unless-stopped
+    networks: [copilot-net]
+    env_file: .env
+    environment:
+      PORT: 3004
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  genai-service:
+    image: falcon1614/ai-career-copilot-genai-service:latest
+    container_name: copilot-genai-service
+    restart: unless-stopped
+    networks: [copilot-net]
+    env_file: .env
+    environment:
+      PORT: 8001
+
+  ml-service:
+    image: falcon1614/ai-career-copilot-ml-service:latest
+    container_name: copilot-ml-service
+    restart: unless-stopped
+    networks: [copilot-net]
+    env_file: .env
+    environment:
+      PORT: 8002
+    depends_on:
+      postgres:
+        condition: service_healthy
